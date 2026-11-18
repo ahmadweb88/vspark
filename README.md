@@ -89,7 +89,9 @@ Deploy: push to `main`; Vercel builds automatically and runs the daily cron from
    ![Sign up](docs/screenshots/02-signup.png)
 3. **Dashboard** — the caption generator next to your feed of saved posts.
    ![Dashboard](docs/screenshots/03-dashboard.png)
-4. **Generate captions (error state)** — when the AI service is unavailable, a clear message with a Retry button is shown.
+4. **Generate captions** — 3 AI captions with hashtags from Gemini, each with a "Use this caption" button.
+   ![Generate captions](docs/screenshots/04-generate-captions.png)
+   If the AI service is busy, a clear message with a Retry button is shown instead.
    ![Generate captions error with Retry](docs/screenshots/04-generate-error-retry.png)
 5. **Write a post yourself** — caption, platform, status, date and time in the save dialog.
    ![Write a post dialog](docs/screenshots/05-write-post-dialog.png)
