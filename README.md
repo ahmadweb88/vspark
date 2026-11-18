@@ -83,13 +83,23 @@ Deploy: push to `main`; Vercel builds automatically and runs the daily cron from
 
 ## Screenshots
 
-_Add screenshots of each process to `docs/screenshots/` and link them here:_
-
-1. Sign up / log in
-2. Generate 3 captions
-3. Save and schedule a post (with image)
-4. Feed with search, status and Drive badges
-5. Edit and delete (confirm dialog)
-6. Connect Google Drive and the "CaptionFlow" folder in Drive
-7. Settings and the test email
-8. Scheduled email in the inbox
+1. **Log in** — email and password login on the split-screen auth page.
+   ![Log in](docs/screenshots/01-login.png)
+2. **Sign up** — create an account with name, email and password.
+   ![Sign up](docs/screenshots/02-signup.png)
+3. **Dashboard** — the caption generator next to your feed of saved posts.
+   ![Dashboard](docs/screenshots/03-dashboard.png)
+4. **Generate captions (error state)** — when the AI service is unavailable, a clear message with a Retry button is shown.
+   ![Generate captions error with Retry](docs/screenshots/04-generate-error-retry.png)
+5. **Write a post yourself** — caption, platform, status, date and time in the save dialog.
+   ![Write a post dialog](docs/screenshots/05-write-post-dialog.png)
+6. **Feed and search** — posts with Scheduled and Not synced badges, filtered by a search term.
+   ![Feed with search](docs/screenshots/06-feed-search.png)
+7. **Edit a post** — the edit dialog with the saved values.
+   ![Edit post](docs/screenshots/07-edit-post.png)
+8. **Delete a post** — confirm dialog before anything is removed.
+   ![Delete confirm](docs/screenshots/08-delete-confirm.png)
+9. **Settings** — notification email, reminder timing and subject/message templates.
+   ![Settings](docs/screenshots/09-settings.png)
+10. **Mobile** — the dashboard at 375px wide.
+    ![Dashboard on mobile](docs/screenshots/10-dashboard-mobile.png)
