@@ -15,8 +15,6 @@ const responseJsonSchema = {
   properties: {
     captions: {
       type: 'array',
-      minItems: 3,
-      maxItems: 3,
       items: {
         type: 'object',
         properties: {
@@ -71,6 +69,8 @@ export async function generateCaptions(
           responseMimeType: 'application/json',
           responseJsonSchema,
           temperature: 0.9,
+          // No "thinking" step: captions are simple and it keeps the reply fast.
+          thinkingConfig: { thinkingBudget: 0 },
         },
       })
       const parsed = captionResponseSchema.safeParse(

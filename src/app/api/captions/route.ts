@@ -3,6 +3,8 @@ import { getUser } from '@/lib/auth'
 import { CaptionError, generateCaptions } from '@/lib/gemini'
 import { captionRequestSchema } from '@/lib/validations/captions'
 
+export const maxDuration = 60
+
 export async function POST(request: Request) {
   const user = await getUser()
   if (!user) {
