@@ -3,9 +3,9 @@ import { cn } from '@/lib/utils'
 
 /** Fill these from docs/req/03-design.md */
 export const BRAND = {
-  name: 'App',
+  name: 'CaptionFlow',
   tagline: '', // '' for none
-  initial: 'A', // used by the monogram style
+  initial: 'C', // used by the monogram style
 }
 
 /** light = for light backgrounds (dark text) · dark = for dark backgrounds (white text) */
