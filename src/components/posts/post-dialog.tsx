@@ -93,13 +93,17 @@ export function PostDialog({ open, onOpenChange, post, draft, onSaved }: Props) 
         ? new Date(values.scheduledAt).toISOString()
         : undefined,
     }
-    const result = post ? await updatePost(post.id, input) : await createPost(input)
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const result = post
+      ? await updatePost(post.id, input, timeZone)
+      : await createPost(input, timeZone)
     if (result.error || !result.post) {
       toast.error(result.error ?? 'Could not save the post.')
       setSaving(false)
       return
     }
     toast.success(post ? 'Post updated' : 'Post saved')
+    if (result.emailFailed) toast.error('Post saved, but the email could not be sent.')
     await onSaved(result.post)
     setSaving(false)
     onOpenChange(false)
