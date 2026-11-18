@@ -6,8 +6,10 @@ import {
 } from '@/lib/validations/captions'
 import { PLATFORM_LABELS } from '@/lib/validations/post'
 
-// gemini-2.5-flash is closed to new keys, so the current Flash model is used.
-const MODELS = ['gemini-3.8-flash']
+// gemini-2.5-flash is closed to new keys. 3.8 Flash first; the lite models are
+// the fallback when it is overloaded (Google returns 503 "high demand").
+const MODELS = ['gemini-3.8-flash', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite']
+const MODEL_TIMEOUT_MS = 15_000
 
 export class CaptionError extends Error {
   constructor(
@@ -40,38 +42,34 @@ export async function generateCaptions(
 
   const ai = new GoogleGenAI({ apiKey })
 
-  let modelIndex = 0
-  // One retry when the model returns JSON that doesn't match the schema.
-  for (let attempt = 0; attempt < 2; attempt++) {
+  let lastStatus = 0
+  // Try each model in turn: an overloaded (503), rate-limited (429), missing (404)
+  // or slow model, or an answer that fails Zod, moves on to the next one.
+  for (const model of MODELS) {
     try {
       const response = await ai.models.generateContent({
-        model: MODELS[modelIndex],
+        model,
         contents: buildPrompt(input),
         config: {
           responseMimeType: 'application/json',
           temperature: 0.9,
-          // No "thinking" step: captions are simple and it keeps the reply fast.
-          thinkingConfig: { thinkingBudget: 0 },
+          httpOptions: { timeout: MODEL_TIMEOUT_MS },
         },
       })
       const parsed = captionResponseSchema.safeParse(
         JSON.parse(response.text ?? '{}'),
       )
       if (parsed.success) return parsed.data
+      console.warn(`gemini ${model}: answer failed validation`)
     } catch (error) {
-      if (error instanceof ApiError) {
-        // Model not available for this key: switch to the fallback model.
-        if (error.status === 404 && modelIndex < MODELS.length - 1) {
-          modelIndex++
-          attempt--
-          continue
-        }
-        if (error.status === 429)
-          throw new CaptionError('Too many requests. Wait a moment and try again.', 429)
-        throw new CaptionError('The AI service is unavailable right now.', 502)
-      }
-      if (!(error instanceof SyntaxError)) throw error
+      lastStatus = error instanceof ApiError ? error.status : 0
+      console.warn(
+        `gemini ${model} failed`,
+        lastStatus || (error instanceof Error ? error.message : error),
+      )
     }
   }
-  throw new CaptionError('The AI returned an unexpected answer. Try again.', 502)
+  if (lastStatus === 429)
+    throw new CaptionError('Too many requests. Wait a moment and try again.', 429)
+  throw new CaptionError('The AI service is busy right now. Try again.', 502)
 }
