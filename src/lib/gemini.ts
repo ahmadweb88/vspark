@@ -6,27 +6,8 @@ import {
 } from '@/lib/validations/captions'
 import { PLATFORM_LABELS } from '@/lib/validations/post'
 
-// gemini-2.5-flash first (named in the brief); newer keys only get the 3.x model.
-const MODELS = ['gemini-2.5-flash', 'gemini-3.8-flash']
-
-// JSON schema Gemini fills in; Zod checks the result again afterwards.
-const responseJsonSchema = {
-  type: 'object',
-  properties: {
-    captions: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          text: { type: 'string' },
-          hashtags: { type: 'array', items: { type: 'string' } },
-        },
-        required: ['text', 'hashtags'],
-      },
-    },
-  },
-  required: ['captions'],
-}
+// gemini-2.5-flash is closed to new keys, so the current Flash model is used.
+const MODELS = ['gemini-3.8-flash']
 
 export class CaptionError extends Error {
   constructor(
@@ -46,6 +27,7 @@ function buildPrompt({ prompt, platform, tone }: CaptionRequest) {
   return [
     `Write exactly 3 different ${PLATFORM_LABELS[platform]} captions in a ${tone} tone.`,
     `Rules: ${limits[platform]}. Put hashtags only in the "hashtags" array, without them in "text".`,
+    'Reply with JSON only, in this shape: {"captions":[{"text":"...","hashtags":["#tag"]}]} with exactly 3 items.',
     `The post is about: ${prompt}`,
   ].join('\n')
 }
@@ -67,7 +49,6 @@ export async function generateCaptions(
         contents: buildPrompt(input),
         config: {
           responseMimeType: 'application/json',
-          responseJsonSchema,
           temperature: 0.9,
           // No "thinking" step: captions are simple and it keeps the reply fast.
           thinkingConfig: { thinkingBudget: 0 },
