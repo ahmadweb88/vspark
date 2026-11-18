@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SectionLabel } from '@/components/portal/section-label'
+import { CaptionGenerator } from '@/components/posts/caption-generator'
 import { PostDialog, type PostDraft } from '@/components/posts/post-dialog'
 import { PostFeed } from '@/components/posts/post-feed'
 import type { Post } from '@/types/database'
@@ -30,7 +31,8 @@ export function Studio({ posts }: { posts: Post[] }) {
     <div className="grid gap-8 lg:grid-cols-2">
       <section className="space-y-4">
         <SectionLabel>Generate</SectionLabel>
-        <Button variant="outline" onClick={() => openNew(null)}>
+        <CaptionGenerator onUse={openNew} />
+        <Button variant="ghost" onClick={() => openNew(null)}>
           <Plus /> Write a post yourself
         </Button>
       </section>
