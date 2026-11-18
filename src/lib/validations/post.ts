@@ -24,6 +24,8 @@ export const postSchema = z
     status: z.enum(['draft', 'scheduled']),
     // ISO string from the browser (local time converted with toISOString)
     scheduledAt: z.string().optional(),
+    // Storage path returned by /api/upload, e.g. "{user_id}/{uuid}.jpg"
+    imagePath: z.string().max(200).nullable().optional(),
   })
   .superRefine((value, ctx) => {
     if (value.status !== 'scheduled') return

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import Image from 'next/image'
 import { format } from 'date-fns'
 import { CalendarClock, Pencil, Search, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -23,6 +24,7 @@ import type { Post } from '@/types/database'
 
 type Props = {
   posts: Post[]
+  imageUrls?: Record<string, string>
   onEdit: (post: Post) => void
   onDeleted: (post: Post) => void | Promise<void>
   /** Extra badges (Drive sync) rendered per post. */
@@ -40,7 +42,13 @@ export function StatusBadge({ status }: { status: string }) {
   return <Badge variant="secondary">Draft</Badge>
 }
 
-export function PostFeed({ posts, onEdit, onDeleted, renderBadges }: Props) {
+export function PostFeed({
+  posts,
+  imageUrls = {},
+  onEdit,
+  onDeleted,
+  renderBadges,
+}: Props) {
   const [query, setQuery] = useState('')
   const [toDelete, setToDelete] = useState<Post | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -100,9 +108,20 @@ export function PostFeed({ posts, onEdit, onDeleted, renderBadges }: Props) {
                 </Badge>
                 {renderBadges?.(post)}
               </div>
-              <p className="mt-3 line-clamp-4 text-sm whitespace-pre-line">
-                {post.caption}
-              </p>
+              <div className="mt-3 flex gap-3">
+                {post.image_path && imageUrls[post.image_path] && (
+                  <Image
+                    src={imageUrls[post.image_path]}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="size-20 shrink-0 rounded-lg border object-cover"
+                  />
+                )}
+                <p className="line-clamp-4 text-sm whitespace-pre-line">
+                  {post.caption}
+                </p>
+              </div>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
                 <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
                   <CalendarClock className="size-3.5" />

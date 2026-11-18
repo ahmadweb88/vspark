@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import type { User } from '@supabase/supabase-js'
 import { getUser } from '@/lib/auth'
 import { getSettingsOrDefault, sendPostEmail } from '@/lib/email'
+import { isOwnPath, removeFiles } from '@/lib/storage'
 import { createClient } from '@/lib/supabase/server'
 import { postSchema, type PostInput } from '@/lib/validations/post'
 import type { Post } from '@/types/database'
@@ -36,8 +37,11 @@ function toRow(input: PostInput) {
     platform: input.platform,
     status: input.status,
     scheduled_at: input.scheduledAt ? new Date(input.scheduledAt).toISOString() : null,
+    image_path: input.imagePath ?? null,
   }
 }
+
+const BAD_IMAGE = { error: 'That image can’t be used. Upload it again.' }
 
 export async function createPost(
   input: PostInput,
@@ -48,6 +52,8 @@ export async function createPost(
 
   const parsed = postSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0].message }
+  if (parsed.data.imagePath && !isOwnPath(parsed.data.imagePath, user.id))
+    return BAD_IMAGE
 
   const supabase = await createClient()
   const { data, error } = await supabase
@@ -75,11 +81,13 @@ export async function updatePost(
 
   const parsed = postSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0].message }
+  if (parsed.data.imagePath && !isOwnPath(parsed.data.imagePath, user.id))
+    return BAD_IMAGE
 
   const supabase = await createClient()
   const { data: before } = await supabase
     .from('posts')
-    .select('status, scheduled_at')
+    .select('status, scheduled_at, image_path')
     .eq('id', id)
     .maybeSingle()
   if (!before) return { error: 'This post no longer exists.' }
@@ -98,6 +106,10 @@ export async function updatePost(
     .select()
     .single()
   if (error) return { error: 'Could not update the post. Please try again.' }
+
+  // Image replaced or removed: delete the old file so nothing is orphaned.
+  if (before.image_path && before.image_path !== data.image_path)
+    await removeFiles(supabase, [before.image_path])
 
   const emailed =
     !timeChanged ||
@@ -121,6 +133,7 @@ export async function deletePost(id: string): Promise<PostResult> {
     .single()
   if (error) return { error: 'Could not delete the post. Please try again.' }
 
+  await removeFiles(supabase, [data.image_path])
   revalidatePath('/dashboard')
   return { post: data }
 }

@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import { ImagePicker } from '@/components/posts/image-picker'
 import { createPost, updatePost } from '@/app/(portal)/dashboard/actions'
 import {
   PLATFORMS,
@@ -43,6 +44,8 @@ type Props = {
   /** Editing an existing post, or starting from a generated caption. */
   post?: Post | null
   draft?: PostDraft | null
+  /** Signed URLs for existing images, keyed by storage path. */
+  imageUrls?: Record<string, string>
   onSaved: (post: Post) => void | Promise<void>
 }
 
@@ -64,6 +67,7 @@ function defaults(post?: Post | null, draft?: PostDraft | null): PostInput {
       platform: post.platform as Platform,
       status: post.status === 'draft' ? 'draft' : 'scheduled',
       scheduledAt: toLocalInput(post.scheduled_at),
+      imagePath: post.image_path,
     }
   }
   return {
@@ -71,11 +75,22 @@ function defaults(post?: Post | null, draft?: PostDraft | null): PostInput {
     platform: draft?.platform ?? 'instagram',
     status: 'scheduled',
     scheduledAt: toLocalInput(new Date(Date.now() + 60 * 60 * 1000).toISOString()),
+    imagePath: null,
   }
 }
 
-export function PostDialog({ open, onOpenChange, post, draft, onSaved }: Props) {
+export function PostDialog({
+  open,
+  onOpenChange,
+  post,
+  draft,
+  imageUrls = {},
+  onSaved,
+}: Props) {
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  // Preview of a just-uploaded image, matched to its path
+  const [localPreview, setLocalPreview] = useState<{ path: string; url: string } | null>(null)
   const form = useForm<PostInput>({
     resolver: zodResolver(postSchema),
     defaultValues: defaults(post, draft),
@@ -214,13 +229,35 @@ export function PostDialog({ open, onOpenChange, post, draft, onSaved }: Props) 
               </Field>
             )}
           />
+          <Controller
+            control={form.control}
+            name="imagePath"
+            render={({ field }) => (
+              <ImagePicker
+                previewUrl={
+                  !field.value
+                    ? null
+                    : localPreview?.path === field.value
+                      ? localPreview.url
+                      : (imageUrls[field.value] ?? null)
+                }
+                onBusyChange={setUploading}
+                onChange={(value) => {
+                  field.onChange(value?.path ?? null)
+                  setLocalPreview(
+                    value ? { path: value.path, url: value.previewUrl } : null,
+                  )
+                }}
+              />
+            )}
+          />
         </form>
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button type="submit" form="post-form" disabled={saving}>
+          <Button type="submit" form="post-form" disabled={saving || uploading}>
             {saving && <Loader2 className="animate-spin" />}
             {post ? 'Save changes' : 'Save post'}
           </Button>

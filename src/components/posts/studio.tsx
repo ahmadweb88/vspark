@@ -19,15 +19,17 @@ import { deleteDriveFile, syncPostToDrive } from '@/lib/drive'
 import type { Post } from '@/types/database'
 
 /** The single main page: caption generator on one side, the post feed on the other. */
-export function Studio({ posts }: { posts: Post[] }) {
+type StudioProps = { posts: Post[]; imageUrls: Record<string, string> }
+
+export function Studio(props: StudioProps) {
   return (
     <DriveProvider>
-      <StudioInner posts={posts} />
+      <StudioInner {...props} />
     </DriveProvider>
   )
 }
 
-function StudioInner({ posts }: { posts: Post[] }) {
+function StudioInner({ posts, imageUrls }: StudioProps) {
   const { getToken } = useDrive()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Post | null>(null)
@@ -89,6 +91,7 @@ function StudioInner({ posts }: { posts: Post[] }) {
         </div>
         <PostFeed
           posts={posts}
+          imageUrls={imageUrls}
           onEdit={openEdit}
           onDeleted={handleDeleted}
           renderBadges={(post) => <DriveBadge fileId={post.drive_file_id} />}
@@ -100,6 +103,7 @@ function StudioInner({ posts }: { posts: Post[] }) {
         onOpenChange={setDialogOpen}
         post={editing}
         draft={draft}
+        imageUrls={imageUrls}
         onSaved={handleSaved}
       />
     </div>
