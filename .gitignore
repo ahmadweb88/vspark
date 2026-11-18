@@ -57,3 +57,6 @@ next-env.d.ts
 
 # browser tool output
 .playwright-mcp/
+
+.vercel
+.env*
