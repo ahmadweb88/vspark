@@ -9,7 +9,7 @@ AI social media caption generator and scheduler: describe a post, get 3 captions
 
 | Item | Details |
 |---|---|
-| Name | _add your name_ |
+| Name | Muhammad Ahmad |
 | Registration number | _add your registration number_ |
 | GitHub URL | https://github.com/ahmadweb88/vspark |
 | Live URL | https://vspark-alpha.vercel.app |
